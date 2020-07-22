@@ -1,48 +1,58 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClientModule, HttpClient } from '@angular/common/http';
+import { EventoService } from '../_services/evento.service';
+import { Evento } from '../_models/Evento';
+
 
 @Component({
   selector: 'app-eventos',
   templateUrl: './eventos.component.html',
-  styleUrls: ['./eventos.component.css']
+  styleUrls: ['./eventos.component.css'],
+  providers: [EventoService]
+
 })
 export class EventosComponent implements OnInit {
 
-eventos: any;
-  /*
-  eventos: any = [
-    {
-      EventoId: 1,
-      Tema: 'Angular',
-      Local: 'Belo Horinte'
-    },
-    {
-      EventoId: 2,
-      Tema: '.Net Core',
-      Local: 'São Paulo'
-    },
-    {
-      EventoId: 3,
-      Tema: 'Angular e .Net Core',
-      Local: 'Rio de Janeiro'
-    }
-  ];
-*/
-
-  constructor(private http: HttpClient) { }
-
-  ngOnInit() {
-   this.getEventos();
+  _filtroLista: string;
+  get filtroLista(): string {
+    return this._filtroLista;
+  }
+  set filtroLista(value: string) {
+    this._filtroLista = value;
+    this.eventosFiltrados = this.filtroLista ? this.filtrarEventos(this.filtroLista) : this.eventos;
   }
 
-  getEventos(){
-    this.http.get('http://localhost:5000/api/values').subscribe(response => {
-      this.eventos = response;
-      console.log(this.eventos);
+  eventosFiltrados: Evento[];
+  eventos: Evento[];
+  imagemLargura = 50;
+  imagemMargem = 2;
+  mostrarImagem = false;
+
+  constructor(private eventoService: EventoService ) { }
+
+  ngOnInit() {
+    this.getEventos();
+  }
+
+  filtrarEventos(filtrarPor: string): Evento[] {
+    filtrarPor = filtrarPor.toLocaleLowerCase();
+    return this.eventos.filter(
+      evento => evento.tema.toLocaleLowerCase().indexOf(filtrarPor) !== -1
+    );
+  }
+
+  alternarImagem() {
+    this.mostrarImagem = !this.mostrarImagem;
+  }
+
+  getEventos() {
+    this.eventoService.getAllEvento().subscribe(
+      (_eventos: Evento[]) => {
+      this.eventos = _eventos;
+      this.eventosFiltrados = this.eventos;
+      console.log(_eventos);
     }, error => {
       console.log(error);
-    }
-    );
+    });
   }
 
 }
